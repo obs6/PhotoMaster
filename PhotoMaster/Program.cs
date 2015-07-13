@@ -16,7 +16,7 @@ namespace PhotoMaster
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new PhotoMasterV1());
+            Application.Run(new PhotoMaster());
         }
     }
 }

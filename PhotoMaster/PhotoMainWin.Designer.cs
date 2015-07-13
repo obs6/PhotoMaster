@@ -1,6 +1,6 @@
 ﻿namespace PhotoMaster
 {
-    partial class PhotoMasterV1
+    partial class PhotoMaster
     {
         /// <summary>
         /// 必需的设计器变量。
@@ -28,12 +28,13 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(PhotoMasterV1));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(PhotoMaster));
             this.btnPrint = new System.Windows.Forms.Button();
             this.panelPhotoFrame = new System.Windows.Forms.Panel();
             this.textBoxPicAdress = new System.Windows.Forms.TextBox();
             this.picBox = new System.Windows.Forms.PictureBox();
             this.listViewPicSelect = new System.Windows.Forms.ListView();
+            this.printDocument1 = new System.Drawing.Printing.PrintDocument();
             this.panelPhotoFrame.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picBox)).BeginInit();
             this.SuspendLayout();
@@ -86,7 +87,11 @@
             this.listViewPicSelect.TabIndex = 3;
             this.listViewPicSelect.UseCompatibleStateImageBehavior = false;
             // 
-            // PhotoMasterV1
+            // printDocument1
+            // 
+            this.printDocument1.PrintPage += new System.Drawing.Printing.PrintPageEventHandler(this.printDocument1_PrintPage);
+            // 
+            // PhotoMaster
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -95,8 +100,10 @@
             this.Controls.Add(this.textBoxPicAdress);
             this.Controls.Add(this.panelPhotoFrame);
             this.Controls.Add(this.btnPrint);
-            this.Name = "PhotoMasterV1";
-            this.Text = "PhotoMasterV1";
+            this.Name = "PhotoMaster";
+            this.Text = "PhotoMaster";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.PhotoMaster_FormClosed);
+            this.Load += new System.EventHandler(this.PhotoMaster_Load);
             this.panelPhotoFrame.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.picBox)).EndInit();
             this.ResumeLayout(false);
@@ -111,6 +118,7 @@
         private System.Windows.Forms.TextBox textBoxPicAdress;
         private System.Windows.Forms.PictureBox picBox;
         private System.Windows.Forms.ListView listViewPicSelect;
+        private System.Drawing.Printing.PrintDocument printDocument1;
     }
 }
 
