@@ -83,23 +83,76 @@ namespace PhotoMaster
             using (System.IO.Stream stream = webres.GetResponseStream())
             {
 
-
+                
                 img = Image.FromStream(stream);
-                this.picBox.Image = img;
+                this.adaptPicSize(img);
 
-            }
-
-            try
-            {
-               
-            }
-            catch
-            {
-            }
-
-
+              }
 
         }
+
+        #endregion
+
+        #region 图片适配
+
+        private void adaptPicSize(Image oldImg)
+           {
+            
+            int dx,dy,nw,nh;      //选择区域图片的位置和大小区域
+           // Rectangle srcRect = new Rectangle(dx,dy,dw,dh);
+            Rectangle srcRect;
+            Rectangle destRect;
+            GraphicsUnit units = GraphicsUnit.Pixel;
+            Image newImg ;
+
+            int oldH = oldImg.Size.Height;
+            int oldW = oldImg.Size.Width;
+            if (oldW * 10 / oldH > 10)      //宽大于高时，相框底图旋转横置照片，调整照片显示尺寸
+            {
+                this.picBox.Size = new Size(294, 250);
+                this.panelPhotoFrame.BackgroundImage = global::PhotoMaster.Properties.Resources.mainframeRotate;
+                if(oldH*100/85 < oldW)
+                {
+                    dy = 0;
+                    nw = oldH * 100 / 85;
+                    dx = (oldW - nw) / 2;        //dx = (oldW - oldH * 100 / 85)/2
+                    nh = oldH;
+                    srcRect = new Rectangle(dx, dy, nw, nh);
+                    destRect = new Rectangle(0, 0, nw, nh);
+                    newImg = new Bitmap(nw,nh);
+                    Graphics g = Graphics.FromImage(newImg);
+                    g.DrawImage(oldImg, destRect, srcRect, units);
+                    this.picBox.Image = newImg;
+                }
+                else
+                {
+                    this.picBox.Image = oldImg;
+                }
+            }
+            else
+            {
+
+                this.picBox.Size = new Size(250, 294);
+                this.panelPhotoFrame.BackgroundImage = global::PhotoMaster.Properties.Resources.mainframe;
+                if (oldW * 100 / 85 < oldH)
+                {
+                    dx = 0;
+                    nh = oldW * 100 / 85;
+                    dy = (oldH - nh) / 2;        //dy = (oldH - oldW * 100 / 85)/2
+                    nw = oldW;
+                    srcRect = new Rectangle(dx, dy, nw, nh);
+                    destRect = new Rectangle(0, 0, nw, nh);
+                    newImg = new Bitmap(nw, nh);
+                    Graphics g = Graphics.FromImage(newImg);
+                    g.DrawImage(oldImg, destRect, srcRect, units);
+                    this.picBox.Image = newImg;
+                }
+                else this.picBox.Image = oldImg;
+           
+            }
+ 
+        }
+
 
         #endregion
 
@@ -146,5 +199,7 @@ namespace PhotoMaster
         }
 
         #endregion
+
+
     }
 }
