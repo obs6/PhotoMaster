@@ -19,6 +19,8 @@ namespace PhotoMaster
 
         private string DataToken;
         private string DataContent;
+        private Boolean IsHoriz;
+        private Image img;
 
         public PhotoMaster()
         {
@@ -48,7 +50,7 @@ namespace PhotoMaster
             XQuquerService.setAccesskeyAndSecretKey(APPAccesskey, APPSecretkey);
             XQuquerService.Start(this.Handle);
         }
-        
+
         #endregion
 
         #region 程序关闭时 关闭音频监听服务
@@ -61,8 +63,7 @@ namespace PhotoMaster
 
         #region 收到音频后，开始分析解码，并从解码网络地址下载图片
 
-        private Image img;
-        private Graphics graph;
+
         private void onRecv(String dataToken)
         {
             //MessageBox.Show("接收成功");
@@ -83,35 +84,36 @@ namespace PhotoMaster
             using (System.IO.Stream stream = webres.GetResponseStream())
             {
 
-                
+
                 img = Image.FromStream(stream);
                 this.adaptPicSize(img);
 
-              }
+            }
 
         }
 
         #endregion
 
-        #region 图片适配
+        #region 图片适配 根据接受到照片尺寸大小，适配横放还是竖放，并根据现实照片打印尺寸68x80的比列选取中间剪裁
 
         private void adaptPicSize(Image oldImg)
-           {
-            
-            int dx,dy,nw,nh;      //选择区域图片的位置和大小区域
-           // Rectangle srcRect = new Rectangle(dx,dy,dw,dh);
+        {
+
+            int dx, dy, nw, nh;      //选择区域图片的位置和大小区域
+            // Rectangle srcRect = new Rectangle(dx,dy,dw,dh);
             Rectangle srcRect;
             Rectangle destRect;
             GraphicsUnit units = GraphicsUnit.Pixel;
-            Image newImg ;
+            Image newImg;
 
             int oldH = oldImg.Size.Height;
             int oldW = oldImg.Size.Width;
             if (oldW * 10 / oldH > 10)      //宽大于高时，相框底图旋转横置照片，调整照片显示尺寸
             {
+                this.IsHoriz = true;
                 this.picBox.Size = new Size(294, 250);
                 this.panelPhotoFrame.BackgroundImage = global::PhotoMaster.Properties.Resources.mainframeRotate;
-                if(oldH*100/85 < oldW)
+                if (oldH * 100 / 85 < oldW)
                 {
                     dy = 0;
                     nw = oldH * 100 / 85;
@@ -119,7 +121,7 @@ namespace PhotoMaster
                     nh = oldH;
                     srcRect = new Rectangle(dx, dy, nw, nh);
                     destRect = new Rectangle(0, 0, nw, nh);
-                    newImg = new Bitmap(nw,nh);
+                    newImg = new Bitmap(nw, nh);
                     Graphics g = Graphics.FromImage(newImg);
                     g.DrawImage(oldImg, destRect, srcRect, units);
                     this.picBox.Image = newImg;
@@ -131,6 +133,7 @@ namespace PhotoMaster
             }
             else
             {
+                this.IsHoriz = false;
 
                 this.picBox.Size = new Size(250, 294);
                 this.panelPhotoFrame.BackgroundImage = global::PhotoMaster.Properties.Resources.mainframe;
@@ -148,9 +151,9 @@ namespace PhotoMaster
                     this.picBox.Image = newImg;
                 }
                 else this.picBox.Image = oldImg;
-           
+
             }
- 
+
         }
 
 
@@ -159,6 +162,12 @@ namespace PhotoMaster
         #region 点击 打印按钮后 开始打印照片服务
         private void btnPrint_Click(object sender, EventArgs e)
         {
+            if (this.IsHoriz == null)
+            {
+                MessageBox.Show("出错提示：IsHoriz为空，");
+                //假如横置情况，则在打印图片上顺时针旋转90度
+                return;
+            }
 
             PrintController printController = new StandardPrintController();
             printDocument1.PrintController = printController;
@@ -181,20 +190,14 @@ namespace PhotoMaster
         #region 打印服务设置等配置情况
         private void printDocument1_PrintPage(object sender, System.Drawing.Printing.PrintPageEventArgs e)
         {
-            PrinterResolution pkResolution;
-            for (int i = 0; i < printDocument1.PrinterSettings.PrinterResolutions.Count; i++)
-            {
-                pkResolution = printDocument1.PrinterSettings.PrinterResolutions[i];
-                //  comboPrintResolution.Items.Add(pkResolution);
-            }
+            this.img = this.picBox.Image;
+            // e.PageSettings;
 
-            string Look1 = e.Graphics.DpiX.ToString();
-            string Look2 = e.Graphics.DpiY.ToString();
-            //e.Graphics.DrawImage(pictureBox1.Image, 375, 575,370,498);   //有边距
-            // e.Graphics.DrawImage(pictureBox1.Image, 0, 0, 390, 535); //无边距
-            // e.Graphics.DrawImage(pictureBox1.Image, 0, 0,280,360);
-            e.Graphics.DrawImage(this.picBox.Image, 0, 0, 337, 600);
-            // e.Graphics.DrawImage(pictureBox1.Image, 0, 0, 400, 600);
+            if (this.IsHoriz)
+                this.img.RotateFlip(RotateFlipType.Rotate90FlipNone);
+            //  e.Graphics.DrawImage(this.picBox.Image, 0, 0, 337, 600, System.Drawing.GraphicsUnit.Pixel);
+            
+            e.Graphics.DrawImage(this.img, 0, 0, 267, 315);
 
         }
 
