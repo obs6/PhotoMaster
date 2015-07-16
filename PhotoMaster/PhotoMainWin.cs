@@ -194,9 +194,13 @@ namespace PhotoMaster
             // e.PageSettings;
 
             if (this.IsHoriz)
-                this.img.RotateFlip(RotateFlipType.Rotate90FlipNone);
+            { 
+            this.img.RotateFlip(RotateFlipType.Rotate90FlipNone);
+            e.Graphics.DrawImage(this.img, 0, 0, 267, 315);
+            this.img.RotateFlip(RotateFlipType.Rotate270FlipNone);
             //  e.Graphics.DrawImage(this.picBox.Image, 0, 0, 337, 600, System.Drawing.GraphicsUnit.Pixel);
-            
+            }
+            else 
             e.Graphics.DrawImage(this.img, 0, 0, 267, 315);
 
         }
@@ -204,5 +208,9 @@ namespace PhotoMaster
         #endregion
 
 
+
     }
+
+ 
+
 }
