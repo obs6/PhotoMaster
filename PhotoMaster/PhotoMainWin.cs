@@ -9,6 +9,11 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using QuQuerSDK;
 using System.Drawing.Printing;
+using System.Printing;
+using System.Management;
+using System.Runtime.InteropServices;
+using PhotoMaster;
+
 
 namespace PhotoMaster
 {
@@ -20,13 +25,19 @@ namespace PhotoMaster
         private string DataToken;
         private string DataContent;
         private Boolean IsHoriz;
+        private StringBuilder prStatus = new StringBuilder(30);
+        
+        PrintStatusMonitor psm = new PrintStatusMonitor();
+        int printStatus;
+        
         private Image img;
+
+
 
         public PhotoMaster()
         {
             InitializeComponent();
         }
-
         #region windows事件捕获音频监听服务，收到蛐蛐音频后进入收图流程
         protected override void WndProc(ref Message m)
         {
@@ -38,6 +49,8 @@ namespace PhotoMaster
                 default:
                     base.WndProc(ref m);
                     break;
+            
+
             }
         }
         #endregion
@@ -49,6 +62,19 @@ namespace PhotoMaster
 
             XQuquerService.setAccesskeyAndSecretKey(APPAccesskey, APPSecretkey);
             XQuquerService.Start(this.Handle);
+            this.btnPrint.Focus();                    //程序窗口打开，鼠标聚焦到确认打印按键上
+
+            
+            psm.setPrintName("R330");
+            psm.startMonitor();
+
+            if (!psm.startMonitor())
+            {
+                MessageBox.Show("没有找到打印机监控窗口，检查驱动是否正常或者重新打开监控窗口");
+                Application.Exit();
+            }
+
+
         }
 
         #endregion
@@ -158,33 +184,58 @@ namespace PhotoMaster
 
 
         #endregion
+        
 
         #region 点击 打印按钮后 开始打印照片服务
-        private void btnPrint_Click(object sender, EventArgs e)
-        {
-            if (this.IsHoriz == null)
-            {
-                MessageBox.Show("出错提示：IsHoriz为空，");
-                //假如横置情况，则在打印图片上顺时针旋转90度
-                return;
-            }
-
-            PrintController printController = new StandardPrintController();
-            printDocument1.PrintController = printController;
-            if (true)//(//MyPrintDg.ShowDialog() == DialogResult.OK)
-            {
-                try
-                {
-                    printDocument1.Print();
-                }
-                catch
-                {   //停止打印
-                    printDocument1.PrintController.OnEndPrint(printDocument1, new PrintEventArgs());
-                }
-            }
+  private void btnPrint_Click(object sender, EventArgs e)
+  {
 
 
-        }
+      this.printStatus = (int)psm.checkToPrint();
+      if (printStatus != 0)
+      {
+          MessageBox.Show("错误"+printStatus+"状态显示："+psm.strpStatus);
+      }
+      
+      PrintController printController = new StandardPrintController();
+      printDocument1.PrintController = printController;
+      if (true)//(//MyPrintDg.ShowDialog() == DialogResult.OK)
+      {
+          try
+          {
+              printDocument1.Print();
+          }
+          catch
+          {   //停止打印
+              printDocument1.PrintController.OnEndPrint(printDocument1, new PrintEventArgs());
+          }
+      }
+
+      /*
+      IntPtr mainR330dHwnd = FindWindow(null, "EPSON Status Monitor 3 : EPSON R330 Series");
+      if (mainR330dHwnd != IntPtr.Zero)
+      {
+
+          string outofpaper = "缺纸或装纸不正确";
+
+          int i = GetWindowText(printStatus, prStatus, 30);
+          string prS = prStatus.ToString();
+          Boolean rr = prS.Equals(outofpaper);
+          if (rr)
+          {
+
+              IntPtr btnCanPrint = FindWindowEx(mainR330dHwnd, IntPtr.Zero, "Button", "取消");
+              SendMessage(btnCanPrint, WM_CLICK, (IntPtr)0, "0");
+          }
+      }
+      else
+      {
+          MessageBox.Show("没有找到R330监控窗口，检查驱动是否正常或者打开监控窗口");
+      }
+      */
+
+
+  }
         #endregion
 
         #region 打印服务设置等配置情况
@@ -206,6 +257,28 @@ namespace PhotoMaster
         }
 
         #endregion
+
+        private void btnPrint_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.F1)
+            {
+               this.textBoxPicAdress.Text="f1 up";
+            }
+            
+        }
+
+        private void btnPrint_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.F1)
+            {
+                // Display a pop-up help topic to assist the user.
+                this.textBoxPicAdress.Text = "f1 down";
+            }
+            else if (e.KeyCode == Keys.P)
+            {
+                this.textBoxPicAdress.Text = "p down";
+            }
+        }
 
 
 

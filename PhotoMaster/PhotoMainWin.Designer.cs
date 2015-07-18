@@ -40,13 +40,15 @@
             // 
             // btnPrint
             // 
-            this.btnPrint.Location = new System.Drawing.Point(43, 258);
+            this.btnPrint.Location = new System.Drawing.Point(789, 77);
             this.btnPrint.Name = "btnPrint";
             this.btnPrint.Size = new System.Drawing.Size(140, 45);
             this.btnPrint.TabIndex = 0;
             this.btnPrint.Text = "确认打印";
             this.btnPrint.UseVisualStyleBackColor = true;
             this.btnPrint.Click += new System.EventHandler(this.btnPrint_Click);
+            this.btnPrint.KeyDown += new System.Windows.Forms.KeyEventHandler(this.btnPrint_KeyDown);
+            this.btnPrint.KeyUp += new System.Windows.Forms.KeyEventHandler(this.btnPrint_KeyUp);
             // 
             // textBoxPicAdress
             // 
