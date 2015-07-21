@@ -145,17 +145,14 @@ namespace PhotoMaster
                     nw = oldH * 100 / 85;
                     dx = (oldW - nw) / 2;        //dx = (oldW - oldH * 100 / 85)/2
                     nh = oldH;
-                    srcRect = new Rectangle(dx, dy, nw, nh);
-                    destRect = new Rectangle(0, 0, nw, nh);
-                    newImg = new Bitmap(nw, nh);
-                    Graphics g = Graphics.FromImage(newImg);
-                    g.DrawImage(oldImg, destRect, srcRect, units);
-                    this.picBox.Image = newImg;
                 }
                 else
                 {
-                    this.picBox.Image = oldImg;
+                    dx = dy = 0;
+                    nw = oldW;
+                    nh = oldH;
                 }
+
             }
             else
             {
@@ -169,16 +166,23 @@ namespace PhotoMaster
                     nh = oldW * 100 / 85;
                     dy = (oldH - nh) / 2;        //dy = (oldH - oldW * 100 / 85)/2
                     nw = oldW;
-                    srcRect = new Rectangle(dx, dy, nw, nh);
-                    destRect = new Rectangle(0, 0, nw, nh);
-                    newImg = new Bitmap(nw, nh);
-                    Graphics g = Graphics.FromImage(newImg);
-                    g.DrawImage(oldImg, destRect, srcRect, units);
-                    this.picBox.Image = newImg;
                 }
-                else this.picBox.Image = oldImg;
+                else
+                {
+                    nh=oldH;
+                    nw = oldH * 85 / 100;
+                    dy = 0;
+                    dx=(oldW-nw)/2;
+
+                }
 
             }
+            srcRect = new Rectangle(dx, dy, nw, nh);
+            destRect = new Rectangle(0, 0, nw, nh);
+            newImg = new Bitmap(nw, nh);
+            Graphics g = Graphics.FromImage(newImg);
+            g.DrawImage(oldImg, destRect, srcRect, units);
+            this.picBox.Image = newImg;
 
         }
 
@@ -269,6 +273,26 @@ namespace PhotoMaster
 
         private void btnPrint_KeyDown(object sender, KeyEventArgs e)
         {
+
+            this.printStatus = (int)psm.checkToPrint();
+            if (printStatus != 0)
+            {
+                MessageBox.Show("错误" + printStatus + "状态显示：" + psm.strpStatus);
+            }
+
+            PrintController printController = new StandardPrintController();
+            printDocument1.PrintController = printController;
+            if (true)//(//MyPrintDg.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    printDocument1.Print();
+                }
+                catch
+                {   //停止打印
+                    printDocument1.PrintController.OnEndPrint(printDocument1, new PrintEventArgs());
+                }
+            }
             if (e.KeyCode == Keys.F1)
             {
                 // Display a pop-up help topic to assist the user.
