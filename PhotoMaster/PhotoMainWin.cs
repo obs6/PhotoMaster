@@ -10,9 +10,8 @@ using System.Windows.Forms;
 using QuQuerSDK;
 using System.Drawing.Printing;
 using System.Printing;
-using System.Management;
-using System.Runtime.InteropServices;
 using PhotoMaster;
+using System.Net.NetworkInformation;
 
 
 namespace PhotoMaster
@@ -25,9 +24,11 @@ namespace PhotoMaster
         private string DataToken;
         private string DataContent;
         private Boolean IsHoriz;
-        private StringBuilder prStatus = new StringBuilder(30);
-        
-        PrintStatusMonitor psm = new PrintStatusMonitor();
+       
+        PrinterStatusMonitor psm = new PrinterStatusMonitor();
+        SqlConServer sqlcon = new SqlConServer();
+
+
         int printStatus;
         
         private Image img;
@@ -46,6 +47,13 @@ namespace PhotoMaster
                 case XQuquerService.WM_CHIRP_RECVSUCCESS:
                     onRecv(XQuquerService.GetDataToken(ref m));
                     break;
+
+                    //关机或者注销时退出程序
+                case 0x0011://WM_QUERYENDSESSION
+                Application.Exit();
+                m.Result = (IntPtr)1;
+                break;
+
                 default:
                     base.WndProc(ref m);
                     break;
@@ -55,24 +63,53 @@ namespace PhotoMaster
         }
         #endregion
 
+        public string GetMacByIPConfig()
+        {
+            
+            NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
+
+
+
+            return interfaces[0].GetPhysicalAddress().ToString();
+        }
+
 
         #region 程序启动 开始启动音频监听服务
         private void PhotoMaster_Load(object sender, EventArgs e)
         {
+
+            if (!sqlcon.checkConfig())
+            {
+                MessageBox.Show("读取配置文件出错，请检查");
+                Application.Exit();
+                return;
+            }
+            else
+
+            psm.setPrintName(sqlcon.getPrinterName());
+            string res=sqlcon.deviceLogin();
+            if(res!="1")
+            {
+                MessageBox.Show("本机未通过PHOTO MASTER官方认证，非授权使用，请联系PHOTO MASTER官方授权");
+                Application.Exit();
+                return;
+            }
+
+            if (!psm.startMonitor())
+            {
+                MessageBox.Show("没有找到打印机监控窗口，检查驱动是否正常或者重新打开监控窗口");
+                Application.Exit();
+                return;
+             
+            }
+            
 
             XQuquerService.setAccesskeyAndSecretKey(APPAccesskey, APPSecretkey);
             XQuquerService.Start(this.Handle);
             this.btnPrint.Focus();                    //程序窗口打开，鼠标聚焦到确认打印按键上
 
             
-            psm.setPrintName("R330");
-            psm.startMonitor();
 
-            if (!psm.startMonitor())
-            {
-                MessageBox.Show("没有找到打印机监控窗口，检查驱动是否正常或者重新打开监控窗口");
-                Application.Exit();
-            }
 
 
         }
@@ -84,6 +121,11 @@ namespace PhotoMaster
         private void PhotoMaster_FormClosed(object sender, FormClosedEventArgs e)
         {
             XQuquerService.Stop();
+
+            sqlcon.deviceLogout();
+
+            this.Dispose();
+           
         }
         #endregion
 
@@ -103,6 +145,13 @@ namespace PhotoMaster
                 DataContent = XQuquerService.downloadData(DataToken);
             if (DataContent != null)               //***未处理 NULL的情况，容易出错，后续处理NULL弹窗提示，声音不对，需重新发照
                 this.textBoxPicAdress.Text = DataContent;
+            if(DataContent=="关机")
+            {
+                
+                System.Diagnostics.Process.Start("cmd.exe", "/cshutdown -f -s -t 60");
+                Application.Exit();
+                return;
+            }
 
             string url = DataContent;
             System.Net.WebRequest webreq = System.Net.WebRequest.Create(url);
@@ -214,30 +263,6 @@ namespace PhotoMaster
               printDocument1.PrintController.OnEndPrint(printDocument1, new PrintEventArgs());
           }
       }
-
-      /*
-      IntPtr mainR330dHwnd = FindWindow(null, "EPSON Status Monitor 3 : EPSON R330 Series");
-      if (mainR330dHwnd != IntPtr.Zero)
-      {
-
-          string outofpaper = "缺纸或装纸不正确";
-
-          int i = GetWindowText(printStatus, prStatus, 30);
-          string prS = prStatus.ToString();
-          Boolean rr = prS.Equals(outofpaper);
-          if (rr)
-          {
-
-              IntPtr btnCanPrint = FindWindowEx(mainR330dHwnd, IntPtr.Zero, "Button", "取消");
-              SendMessage(btnCanPrint, WM_CLICK, (IntPtr)0, "0");
-          }
-      }
-      else
-      {
-          MessageBox.Show("没有找到R330监控窗口，检查驱动是否正常或者打开监控窗口");
-      }
-      */
-
 
   }
         #endregion

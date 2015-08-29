@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace PhotoMaster
 {
-    class PrintStatusMonitor
+    class PrinterStatusMonitor                  //打印机状态监控类
     {
         private IntPtr parentWinHandle;          //父窗口即epson mointor窗口 句柄
         private IntPtr statusTextWinHandle;       //父窗口内 显示打印机状态的文本框 句柄
@@ -38,7 +38,7 @@ namespace PhotoMaster
         {
             switch (name)
             {
-                case "R330":
+                case "epsonr330":
                     this.prWinName = "EPSON Status Monitor 3 : EPSON R330 Series";
                     break;
                 default:
